@@ -1,36 +1,37 @@
 #pragma once
 #include "polynomial.h"
-#include <gTEST/gTEST.h>
+#include <gtest/gtest.h>
 
-TEST(list, can_create_list)
-{
+TEST(list, can_create_list) {
 	ASSERT_NO_THROW(list<int> l);
 }
 
-TEST(list, can_copy_list)
-{
+TEST(list, can_copy_list) {
 	list<int> l1;
 	ASSERT_NO_THROW(list<int> l2(l1));
 }
-TEST(list, can_get_size)
-{
+
+TEST(list, can_get_size) {
 	list<int> l1;
 	int num = 3;
 	l1.insert(0, num);
 	ASSERT_NO_THROW(l1.get_size());
 	EXPECT_EQ(l1.get_size(), 1);
 }
+
 TEST(list, correct_check_of_empty) {
 	list<int> l1, l2;
 	l2.insert(0, 2);
 	EXPECT_EQ(l1.empty(), true);
 	EXPECT_EQ(l2.empty(), false);
 }
+
 TEST(list, can_insert_first) {
 	list<int> l1;
 	int num = 5;
 	ASSERT_NO_THROW(l1.insert(0, num));
 }
+
 TEST(list, can_insert) {
 	list<int> l1;
 	int num1 = 5, num2 = 6, num3 = 7;
@@ -40,6 +41,7 @@ TEST(list, can_insert) {
 	++it;
 	ASSERT_NO_THROW(l1.insert(*it, num3));
 }
+
 TEST(list, can_delete_first) {
 	list<int> l1;
 	l1.insert(0, 2);
@@ -47,6 +49,7 @@ TEST(list, can_delete_first) {
 	ASSERT_NO_THROW(l1.erase(0));
 	EXPECT_EQ(l1.get_size(), 1);
 }
+
 TEST(list, can_delete_node) {
 	list<int> l1;
 	list<int>::iterator it = l1.begin();
@@ -57,6 +60,7 @@ TEST(list, can_delete_node) {
 	l1.print();
 	EXPECT_EQ(l1.get_size(), 1);
 }
+
 TEST(list, can_search_node) {
 	list<int> l1;
 	int num1 = 1, num2 = 2, num3 = 3;
@@ -67,13 +71,16 @@ TEST(list, can_search_node) {
 	++iter1;
 	EXPECT_EQ(iter1, l1.search(num2));
 }
+
 TEST(iterator, can_create) {
 	ASSERT_NO_THROW(list<int>::iterator it);
 }
+
 TEST(iterator, can_copy) {
 	list<int>::iterator it2;
 	ASSERT_NO_THROW(list<int>::iterator it1(it2));
 }
+
 TEST(iterator, operator_plus_plus_is_correct)
 {
 	list<int> l1;
@@ -157,13 +164,14 @@ TEST(polynomial, operator_of_not_equal_is_correct)
 	EXPECT_EQ(true, a != b);
 }
 
-//TEST(polynomial, can_erase_monomial_with_zero_coefficient)
-//{
-//	polynomial a("20.22xyz-7y+3-38z^4"), b("-3+7y-20.21xyz");
-//	EXPECT_EQ(4, a.get_count());
-//	a += b;	
-//	EXPECT_EQ(2, a.get_count());
-//}
+TEST(polynomial, can_erase_monomial_with_zero_coefficient)
+{
+	polynomial a("20.22xyz-7y+3-38z^4"), b("-3+7y-20.21xyz");
+	EXPECT_EQ(4, a.get_count());
+	a += b;	
+	//a.print();
+	EXPECT_EQ(2, a.get_count());
+}
 
 TEST(polynomial, can_to_group_monomials_with_the_same_coefficients)
 {
@@ -259,8 +267,23 @@ TEST(polynomial, function_clear_is_correct)
 	EXPECT_EQ(true, a.empty());
 }
 
-TEST(polynomial, can_clear_empty_pol)
+TEST(polynomial, can_clear_empty_polynom)
 {
 	polynomial a;
 	ASSERT_NO_THROW(a.clear());
+}
+
+TEST(polynomial, check_input_correctly) {
+	ASSERT_ANY_THROW(polynomial a("^4x-2"));
+	ASSERT_NO_THROW(polynomial a1("4x-2"));
+	ASSERT_ANY_THROW(polynomial b("2z+5x-"));
+	ASSERT_NO_THROW(polynomial b1("2z+5x"));
+	ASSERT_ANY_THROW(polynomial c("5+x^5y^5z^5-+2z^2"));
+	ASSERT_NO_THROW(polynomial c1("5+x^5y^5z^5-2z^2"));
+	ASSERT_ANY_THROW(polynomial d("5+^-4y+2z^2"));
+	ASSERT_NO_THROW(polynomial d1("5-4y+2z^2"));
+	ASSERT_ANY_THROW(polynomial e("5-.765x"));
+	ASSERT_NO_THROW(polynomial e1("5-0.765x"));
+	ASSERT_ANY_THROW(polynomial f("-cx^2"));
+	ASSERT_NO_THROW(polynomial f1("-x^2"));
 }

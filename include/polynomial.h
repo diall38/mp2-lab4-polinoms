@@ -15,7 +15,7 @@ public:
 	};
 	node* first;
 	size_t size;
-
+	
 	class iterator {
 	protected:
 		node* ptr;
@@ -48,10 +48,10 @@ public:
 	list(const list<T>& lst) : first(NULL), size(0) {
 		node* pcurr = first;
 
-		for (iterator it_curr = lst.begin(); it_curr != lst.end(); ++it_curr) {
-			pcurr = insert(pcurr, it_curr->data);
-			//pcurr = pcurr->next;
-		}
+		//the order of monomials in a polynomial is determined during creation, 
+		//the insertion of a monom does not violate the order
+		for (iterator it_curr = lst.begin(); it_curr != lst.end(); ++it_curr)
+			pcurr = insert(pcurr, it_curr->data);			//return pointer to current monomial									
 	}
 
 	~list() {
@@ -63,8 +63,7 @@ public:
 		}
 	}
 
-	void print()
-	{
+	void print() {
 		iterator iter = begin();
 		while (iter != end()) {
 			std::cout << iter->data << " ";
@@ -75,8 +74,7 @@ public:
 
 	node* get_first() { return first; }
 
-	iterator search(T& value)
-	{
+	iterator search(T& value) {
 		iterator it = begin();
 		while (it != end()) {
 			if (it->data == value)
@@ -86,8 +84,7 @@ public:
 		return it;
 	}
 
-	void erase(node* pos)
-	{
+	void erase(node* pos) {
 		if (pos == NULL) {
 			if (!size) { throw "list is empty"; }
 			node* tmp = first;
@@ -102,14 +99,12 @@ public:
 		size--;
 	}
 
-	iterator begin() const
-	{
+	iterator begin() const {
 		iterator it(first);
 		return it;
 	}
 
-	iterator end() const
-	{
+	iterator end() const {
 		iterator it(NULL);
 		return it;
 	}
@@ -117,8 +112,7 @@ public:
 	bool empty() { return size == 0; }
 	size_t get_size() { return size; }
 
-	node* insert(node* pos, const T& value)
-	{
+	node* insert(node* pos, const T& value) {
 		node* tmp;
 		if (pos == NULL) {
 			tmp = new node(value, first);
@@ -135,22 +129,21 @@ public:
 
 #define EXP 9
 
-class polynomial {//:public list {
+class polynomial {
 public:
 	class monomial {
-	public:
-		size_t degree;				// monomial degree in the range from 0 to 999 
-		double multiplier;			// coefficient in front of the monomial  
+	public:							//degree - three-digit number
+		size_t degree;				//monomial degree in the range from 0 to 9 for each variable (x, y or z) 
+		double multiplier;			//coefficient in front of the monomial  
 
 		monomial() : degree(0), multiplier(0) {}
-		monomial(size_t t_degree, int t_mult) : degree(t_degree), multiplier(t_mult) {}
+		monomial(size_t t_degree, double t_mult) : degree(t_degree), multiplier(t_mult) {}
 		monomial(const monomial& t_monom) : degree(t_monom.degree), multiplier(t_monom.multiplier) {}
-		virtual ~monomial() {
-
-		}
+		
 		monomial& operator*=(const monomial& m) {
+			//the digit of a three-digit number corresponds to the degree of one of the variables x,y,z
 			if (degree / 100 + m.degree / 100 > EXP || degree / 10 % 10 + m.degree / 10 % 10 > EXP \
-				|| degree % 10 + m.degree % 10 > EXP)
+				|| degree % 10 + m.degree % 10 > EXP) 
 				throw "too big degree of monomial";
 			else {
 				multiplier *= m.multiplier;
@@ -165,6 +158,7 @@ public:
 		}
 
 		bool operator==(const monomial& m) const {
+			//take into account the error of "double" type
 			return (abs(multiplier - m.multiplier) <= 1e-10 && degree == m.degree);
 		}
 
@@ -174,8 +168,9 @@ public:
 
 		void print() const {
 			if (multiplier < 0) std::cout << " - ";
-			if (abs(multiplier) - 1 > 1e-10 || \
-				abs(multiplier) - 1 < 1e-10 && degree == 0) std::cout << abs(multiplier);
+			//do not display 1 as a coefficient, only if degree == 0 (const)
+			if (abs(abs(multiplier) - 1) > 1e-10 || \
+				abs(abs(multiplier) - 1) < 1e-10 && degree == 0) std::cout << abs(multiplier);
 			int deg_x = degree / 100, deg_y = degree / 10 % 10, deg_z = degree % 10;
 
 			if (deg_x > 1) std::cout << "x^" << deg_x;
@@ -189,13 +184,15 @@ public:
 		}
 	};
 public:
+	// create polynomial as list of monomials
 	list<monomial> polynom;
 public:
 	polynomial() {}
 	polynomial(const polynomial& p) : polynom(p.polynom) {}
 	polynomial(std::string s) {
-		translator(s);
-		print();
+		//polynomial is created by string, all monomials in the polynomial are sorted
+		translator(s); 
+		//print();
 	}
 	virtual ~polynomial() {
 		clear();
@@ -206,7 +203,7 @@ public:
 		(*it)->data.print();
 		++it;
 		while (it != polynom.end()) {
-			if ((*it)->data.multiplier > 1e-10)
+			if ((*it)->data.multiplier > 1e-10) 
 				std::cout << " + ";
 			(*it)->data.print();
 			++it;
@@ -219,7 +216,7 @@ public:
 
 		auto it = polynom.begin();
 		if (it == polynom.end()) {
-			polynom.insert(NULL, m);
+			polynom.insert(NULL, m);   
 			return;
 		}
 
@@ -229,18 +226,17 @@ public:
 		while (it != polynom.end()) {
 
 			if ((*it)->data.degree == m.degree) {
-
 				(*it)->data.multiplier += m.multiplier;
 
-				if (abs((*it)->data.multiplier) < 1e-10) {
-					if (it == prev_it && it == polynom.begin())
+				if (abs((*it)->data.multiplier) < 1e-10) {  //if multiplier == 0, delete this monomial
+					if (it == prev_it && it == polynom.begin()) //if monomial on the first position
 						polynom.erase(NULL);
 					else polynom.erase((*prev_it));
 				}
 				return;
 			}
 			else {
-				if ((*it)->data.degree < m.degree)
+				if ((*it)->data.degree < m.degree) 
 					ans = it;
 				else {
 					polynom.insert(*ans, m);
@@ -270,19 +266,37 @@ public:
 				first = false;
 				continue;
 			}
-			if (input[0] == '+' || input[0] == '-') {     // beginning of a new monomial
-				insert(*m);
+
+			// beginning of a new monomial
+			if (input[0] == '+' || input[0] == '-') {     
+				//add a new monomial if we see the operator "+" or "-"
+				insert(*m);	
 				m->degree = 0;
-				if (input[1] < '0' || input[1] > '9') {
-					if (input[0] == '-') m->multiplier = -1;
+
+				if (input.size() == 1) {
+					throw "incorrect input, check your input polynomial";
+					return;
+				}
+
+				if (input[1] == 'x' || input[1] == 'y' || input[1] == 'z') {  //if there is no number after the sign,
+					if (input[0] == '-') m->multiplier = -1;				  //we assume that the multiplier is equal to one
 					else m->multiplier = 1;
 					input.erase(0, 1);
 					continue;
 				}
-				std::string::size_type sz;
-				double num = std::stod(input, &sz);
-				input.erase(0, sz);
-				m->multiplier = num;
+
+				else {
+					if (input[1] >= '0' && input[1] <= '9') {
+						std::string::size_type sz;
+						double num = std::stod(input, &sz);
+						input.erase(0, sz);
+						m->multiplier = num;
+					}
+					else {
+						throw "incorrect input, check your input polynomial";
+						return;
+					}
+				}
 			}
 			else
 				if (input[0] == 'x' || input[0] == 'y' || input[0] == 'z') {
@@ -290,7 +304,7 @@ public:
 
 					char tmp = input[0];
 					int deg = 1;
-					if (input[1] == '^') {
+					if (input[1] == '^') {   //get the degree
 						input.erase(0, 2);
 
 						std::string::size_type sz;
@@ -304,6 +318,10 @@ public:
 					else input.erase(0, 1);
 
 					m->degree += tmp == 'x' ? deg * 100 : tmp == 'y' ? deg * 10 : deg;
+				}
+				else {
+					throw "incorrect input, check your input polynomial";
+					return;
 				}
 		}
 		insert(*m);
@@ -345,27 +363,25 @@ public:
 polynomial&
 polynomial::operator+=(const polynomial& p)
 {
-	auto it = polynom.begin(), it_p = p.polynom.begin(), prev_it = it;
+	polynomial ans;
+	auto it = polynom.begin(), it_p = p.polynom.begin();
 
 	while (it != polynom.end() && it_p != p.polynom.end()) {
 		if (it->data.degree == it_p->data.degree) {
-			it->data.multiplier += it_p->data.multiplier;
-			if (abs(it->data.multiplier) < 1e-10) {
-				if (it == prev_it && it == polynom.begin())
-					polynom.erase(NULL);
-				else polynom.erase((*prev_it));
+			double mult = it->data.multiplier + it_p->data.multiplier;
+			if (abs(mult) > 1e-10) {
+				polynomial::monomial tmp_m(it->data.degree, mult);
+				ans.insert(tmp_m);
 			}
-			++it_p;
-			prev_it = it;
-			++it;
+			++it, ++it_p;
 		}
 		else {
 			if (it->data.degree < it_p->data.degree) {
-				prev_it = it;
+				ans.insert((*it)->data);
 				++it;
 			}
 			else {
-				insert((*it_p)->data);
+				ans.insert((*it_p)->data);
 				++it_p;
 			}
 		}
@@ -373,10 +389,15 @@ polynomial::operator+=(const polynomial& p)
 
 	if (it == polynom.end())
 		while (it_p != p.polynom.end()) {
-			insert((*it_p)->data);
-			it_p = it_p->next;
+			ans.insert((*it_p)->data);
+			++it_p;
 		}
-
+	if (it_p == p.polynom.end()) 
+		while (it != polynom.end()) {
+			ans.insert((*it)->data);
+			++it;
+		}
+	*this = ans;
 	return (*this);
 }
 
