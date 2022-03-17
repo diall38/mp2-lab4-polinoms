@@ -8,4 +8,4 @@ include_directories(include)
 
 
 add_executable(mp2-lab4-polinoms include/polynomial.h samples/main.cpp)
-add_subdirectory(googletest)
+add_subdirectory(google_test)
